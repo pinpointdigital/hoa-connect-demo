@@ -1,0 +1,515 @@
+import { 
+  User, Community, Request, Form, CCRSection, 
+  Photo, Notification 
+} from '../types';
+
+// Demo Community Data - Rancho Madrina Community Association
+export const DEMO_COMMUNITY: Community = {
+  id: 'rancho-madrina',
+  name: 'Rancho Madrina Community Association',
+  address: '26840 Aliso Viejo Parkway, Suite 100, Aliso Viejo, CA 92656',
+  managementCompany: 'Seabreeze Management Company',
+  totalHomeowners: 847,
+  establishedDate: '1995-03-15',
+  ccrs: [
+    {
+      id: 'ccr-4-2',
+      section: '4.2',
+      title: 'Exterior Color Guidelines',
+      content: 'All exterior paint colors must be earth tones and approved by the Architectural Review Committee. Approved colors include: beige, tan, sage green, desert sand, warm gray, and terra cotta. Bright or neon colors are prohibited.',
+      category: 'architectural'
+    },
+    {
+      id: 'ccr-4-1',
+      section: '4.1',
+      title: 'Architectural Modifications',
+      content: 'Any exterior modifications including but not limited to paint, landscaping, structures, or additions require prior written approval from the HOA Board of Directors.',
+      category: 'architectural'
+    },
+    {
+      id: 'ccr-3-1',
+      section: '3.1',
+      title: 'Neighbor Notification',
+      content: 'Homeowners must notify and obtain approval from immediately adjacent neighbors for any modifications that may affect their property views or enjoyment.',
+      category: 'architectural'
+    }
+  ],
+  boardMembers: ['robert-ferguson', 'dean-martin', 'frank-sinatra', 'david-kim', 'patricia-williams'],
+  managementStaff: ['allan-chua']
+};
+
+// Demo Users
+export const DEMO_USERS: User[] = [
+  // Homeowner - Jason Abustan
+  {
+    id: 'jason-abustan',
+    email: 'jason.abustan@email.com',
+    name: 'Jason Abustan',
+    role: 'homeowner',
+    phone: '(949) 555-0123',
+    communityId: 'rancho-madrina',
+    contactInfo: {
+      email: 'hello@pinpointdigital.us',
+      phone: '+16199274774',
+      address: '123 Oak Street, Rancho Madrina Community',
+      emergencyContact: 'Maria Abustan',
+      emergencyPhone: '(949) 555-0124',
+      preferredNotification: 'both'
+    },
+    homeownerData: {
+      address: '123 Oak Street, Rancho Madrina Community',
+      mailingAddress: '123 Oak Street, Rancho Madrina Community',
+      moveInDate: '2019-03-15',
+      propertyType: 'Single Family Home',
+      emergencyContact: {
+        name: 'Maria Abustan',
+        phone: '(949) 555-0124',
+        email: 'maria.abustan@email.com',
+        relationship: 'Spouse'
+      }
+    }
+  },
+  // Management Company - Allan Chua
+  {
+    id: 'allan-chua',
+    email: 'allan.chua@seabreezemgmt.com',
+    name: 'Allan Chua',
+    role: 'management',
+    phone: '(800) 232-7517',
+    communityId: 'rancho-madrina',
+    contactInfo: {
+      email: 'hello@pinpointdigital.us',
+      phone: '+16199274774',
+      address: '26840 Aliso Viejo Parkway, Suite 100, Aliso Viejo, CA 92656',
+      emergencyContact: 'Seabreeze Management',
+      emergencyPhone: '(800) 232-7518',
+      preferredNotification: 'both'
+    },
+    managementData: {
+      companyName: 'Seabreeze Management Company',
+      title: 'Community Manager',
+      permissions: ['review_requests', 'manage_forms', 'send_notifications', 'manage_vendors'],
+      managedCommunities: ['rancho-madrina']
+    }
+  },
+  // Board Members
+  {
+    id: 'robert-ferguson',
+    email: 'robert.ferguson@email.com',
+    name: 'Robert Ferguson',
+    role: 'board_member',
+    phone: '(949) 555-0200',
+    communityId: 'rancho-madrina',
+    contactInfo: {
+      email: 'hello@pinpointdigital.us',
+      phone: '+16199274774',
+      address: '456 Pine Street, Rancho Madrina Community',
+      emergencyContact: 'Susan Ferguson',
+      emergencyPhone: '(949) 555-0203',
+      preferredNotification: 'both'
+    },
+    boardMemberData: {
+      position: 'president',
+      termStart: '2023-01-01',
+      termEnd: '2024-12-31'
+    }
+  },
+  {
+    id: 'dean-martin',
+    email: 'dean.martin@email.com',
+    name: 'Dean Martin',
+    role: 'board_member',
+    phone: '(949) 555-0201',
+    communityId: 'rancho-madrina',
+    contactInfo: {
+      email: 'hello@pinpointdigital.us',
+      phone: '+16199274774',
+      address: '789 Maple Street, Rancho Madrina Community',
+      emergencyContact: 'Betty Martin',
+      emergencyPhone: '(949) 555-0204',
+      preferredNotification: 'both'
+    },
+    boardMemberData: {
+      position: 'vice_president',
+      termStart: '2023-01-01',
+      termEnd: '2024-12-31'
+    }
+  },
+  {
+    id: 'frank-sinatra',
+    email: 'frank.sinatra@email.com',
+    name: 'Frank Sinatra',
+    role: 'board_member',
+    phone: '(949) 555-0202',
+    communityId: 'rancho-madrina',
+    contactInfo: {
+      email: 'hello@pinpointdigital.us',
+      phone: '+16199274774',
+      address: '321 Cedar Street, Rancho Madrina Community',
+      emergencyContact: 'Nancy Sinatra',
+      emergencyPhone: '(949) 555-0205',
+      preferredNotification: 'both'
+    },
+    boardMemberData: {
+      position: 'treasurer',
+      termStart: '2023-01-01',
+      termEnd: '2024-12-31'
+    }
+  },
+  // Neighbors
+  {
+    id: 'robert-thompson',
+    email: 'robert.thompson@email.com',
+    name: 'Robert Thompson',
+    role: 'homeowner',
+    phone: '(949) 555-0125',
+    communityId: 'rancho-madrina',
+    homeownerData: {
+      address: '121 Oak Street, Rancho Madrina Community',
+      moveInDate: '2018-06-01',
+      propertyType: 'Single Family Home'
+    }
+  },
+  {
+    id: 'james-davis',
+    email: 'james.davis@email.com',
+    name: 'James Davis',
+    role: 'homeowner',
+    phone: '(949) 555-0126',
+    communityId: 'rancho-madrina',
+    homeownerData: {
+      address: '125 Oak Street, Rancho Madrina Community',
+      moveInDate: '2020-01-15',
+      propertyType: 'Single Family Home'
+    }
+  },
+  {
+    id: 'carlos-gonzalez',
+    email: 'carlos.gonzalez@email.com',
+    name: 'Carlos Gonzalez',
+    role: 'homeowner',
+    phone: '(949) 555-0127',
+    communityId: 'rancho-madrina',
+    homeownerData: {
+      address: '124 Maple Street, Rancho Madrina Community',
+      moveInDate: '2017-09-01',
+      propertyType: 'Single Family Home'
+    }
+  }
+];
+
+// Demo Photos
+export const DEMO_PHOTOS: Photo[] = [
+  {
+    id: 'photo-before-patio',
+    url: '/images/demo/patio-before.jpg',
+    caption: 'Current beige patio color',
+    uploadedAt: new Date().toISOString(),
+    uploadedBy: 'jason-abustan',
+    type: 'before'
+  },
+  {
+    id: 'photo-sage-sample',
+    url: '/images/demo/sage-green-sample.jpg',
+    caption: 'Proposed sage green color sample',
+    uploadedAt: new Date().toISOString(),
+    uploadedBy: 'jason-abustan',
+    type: 'reference'
+  }
+];
+
+// Demo Request - Patio Painting
+export const DEMO_REQUEST: Request = {
+  id: 'req-patio-paint-001',
+  homeownerId: 'jason-abustan',
+  communityId: 'rancho-madrina',
+  type: 'exterior_modification',
+  title: 'Paint Front Patio - Beige to Sage Green',
+  description: 'Request to paint the front patio from the current beige color to sage green. The sage green color is an approved earth tone per CC&R Section 4.2.',
+  status: 'submitted',
+  priority: 'medium',
+  submittedAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  
+  photos: DEMO_PHOTOS,
+  documents: [],
+  
+  workflowSteps: [
+    {
+      id: 'step-submission',
+      name: 'Request Submission',
+      description: 'Homeowner submits ARC request',
+      status: 'completed',
+      completedAt: new Date().toISOString(),
+      completedBy: 'jason-abustan'
+    },
+    {
+      id: 'step-management-review',
+      name: 'Management Review',
+      description: 'HOA management reviews request and provides CC&R references',
+      status: 'pending',
+      assignedTo: 'allan-chua'
+    },
+    {
+      id: 'step-neighbor-approval',
+      name: 'Neighbor Approval',
+      description: 'Adjacent neighbors review and approve request',
+      status: 'pending'
+    },
+    {
+      id: 'step-board-review',
+      name: 'Board Review',
+      description: 'Board of Directors votes on request',
+      status: 'pending'
+    },
+    {
+      id: 'step-decision',
+      name: 'Final Decision',
+      description: 'Final approval notification sent to homeowner',
+      status: 'pending'
+    }
+  ],
+  currentStep: 'step-management-review',
+  
+  neighborApprovals: [
+    {
+      id: 'approval-121-oak',
+      neighborId: 'robert-thompson',
+      neighborAddress: '121 Oak Street',
+      status: 'pending'
+    },
+    {
+      id: 'approval-125-oak',
+      neighborId: 'james-davis',
+      neighborAddress: '125 Oak Street',
+      status: 'pending'
+    },
+    {
+      id: 'approval-124-maple',
+      neighborId: 'carlos-gonzalez',
+      neighborAddress: '124 Maple Street',
+      status: 'pending'
+    }
+  ],
+  
+  boardVotes: [],
+  
+  timeline: [
+    {
+      id: 'timeline-submitted',
+      timestamp: new Date().toISOString(),
+      type: 'submitted',
+      userId: 'jason-abustan',
+      userName: 'Jason Abustan',
+      description: 'Request submitted for patio painting approval'
+    }
+  ]
+};
+
+// Owner Notice Disclosure Form
+export const OWNER_NOTICE_DISCLOSURE_FORM: Form = {
+  id: 'form-owner-notice-2025',
+  name: 'Owner Notice Disclosure',
+  description: 'California law requires all Owners in a community association to provide the following information to the association on an annual basis.',
+  type: 'owner_notice_disclosure',
+  requiredSignature: true,
+  dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
+  distributedAt: new Date().toISOString(),
+  distributedBy: 'mike-canning',
+  communityId: 'rancho-madrina',
+  fields: [
+    {
+      id: 'owner_name',
+      name: 'ownerName',
+      label: 'Owner Name(s)',
+      type: 'text',
+      required: true,
+      defaultValue: 'Jason Abustan'
+    },
+    {
+      id: 'owner_phone_home',
+      name: 'ownerPhoneHome',
+      label: 'Owner Phone - Home',
+      type: 'phone',
+      required: false
+    },
+    {
+      id: 'owner_phone_cell',
+      name: 'ownerPhoneCell',
+      label: 'Owner Phone - Cell',
+      type: 'phone',
+      required: false
+    },
+    {
+      id: 'owner_email',
+      name: 'ownerEmail',
+      label: 'Owner Email(s)',
+      type: 'email',
+      required: true,
+      defaultValue: 'jason.abustan@email.com'
+    },
+    {
+      id: 'property_address',
+      name: 'propertyAddress',
+      label: 'Address in the Association',
+      type: 'address',
+      required: true,
+      defaultValue: '123 Oak Street, Rancho Madrina Community'
+    },
+    {
+      id: 'mailing_address',
+      name: 'mailingAddress',
+      label: 'Mailing Address (can be same)',
+      type: 'address',
+      required: true,
+      defaultValue: '123 Oak Street, Rancho Madrina Community'
+    },
+    {
+      id: 'valid_email',
+      name: 'validEmail',
+      label: 'Valid Email Address(es)',
+      type: 'email',
+      required: true,
+      defaultValue: 'jason.abustan@email.com'
+    },
+    {
+      id: 'secondary_mailing',
+      name: 'secondaryMailing',
+      label: 'Secondary Mailing Address',
+      type: 'address',
+      required: false
+    },
+    {
+      id: 'secondary_email',
+      name: 'secondaryEmail',
+      label: 'Secondary Email Address(es)',
+      type: 'email',
+      required: false
+    },
+    {
+      id: 'delivery_preference',
+      name: 'deliveryPreference',
+      label: 'Member\'s preferred delivery method for receiving notices',
+      type: 'select',
+      required: true,
+      options: ['Mailing address', 'Email address', 'Both']
+    },
+    {
+      id: 'tenant_name',
+      name: 'tenantName',
+      label: 'Tenant Name (if property is rented)',
+      type: 'text',
+      required: false
+    },
+    {
+      id: 'tenant_phone',
+      name: 'tenantPhone',
+      label: 'Tenant Phone Number',
+      type: 'phone',
+      required: false
+    },
+    {
+      id: 'tenant_email',
+      name: 'tenantEmail',
+      label: 'Tenant Valid Email Address(es)',
+      type: 'email',
+      required: false
+    }
+  ]
+};
+
+// Demo Notifications
+export const DEMO_NOTIFICATIONS: Notification[] = [
+  {
+    id: 'notif-request-submitted',
+    userId: 'allan-chua',
+    type: 'request_submitted',
+    title: 'New ARC Request Submitted',
+    message: 'Jason Abustan has submitted a new request for patio painting approval.',
+    status: 'unread',
+    priority: 'medium',
+    createdAt: new Date().toISOString(),
+    actionUrl: '/management/requests/req-patio-paint-001'
+  },
+  {
+    id: 'notif-form-due',
+    userId: 'jason-abustan',
+    type: 'form_due',
+    title: 'Annual Form Required',
+    message: 'Owner Notice Disclosure form is due in 10 days.',
+    status: 'unread',
+    priority: 'high',
+    createdAt: new Date().toISOString(),
+    actionUrl: '/homeowner/forms/form-owner-notice-2025'
+  }
+];
+
+// Helper functions
+export const getUserById = (id: string): User | undefined => {
+  return DEMO_USERS.find(user => user.id === id);
+};
+
+export const getUsersByRole = (role: User['role']): User[] => {
+  return DEMO_USERS.filter(user => user.role === role);
+};
+
+export const getBoardMembers = (): User[] => {
+  return getUsersByRole('board_member');
+};
+
+export const getNeighbors = (excludeUserId?: string): User[] => {
+  return DEMO_USERS.filter(user => 
+    user.role === 'homeowner' && 
+    user.id !== 'jason-abustan' && 
+    user.id !== excludeUserId &&
+    ['robert-thompson', 'james-davis', 'carlos-gonzalez'].includes(user.id)
+  );
+};
+
+export const getCCRSection = (sectionId: string): CCRSection | undefined => {
+  return DEMO_COMMUNITY.ccrs.find(ccr => ccr.id === sectionId);
+};
+
+// Demo state management
+export const resetDemoData = () => {
+  // Reset request status
+  DEMO_REQUEST.status = 'submitted';
+  DEMO_REQUEST.currentStep = 'step-management-review';
+  DEMO_REQUEST.updatedAt = new Date().toISOString();
+  
+  // Reset neighbor approvals
+  DEMO_REQUEST.neighborApprovals.forEach(approval => {
+    approval.status = 'pending';
+    delete approval.comments;
+    delete approval.submittedAt;
+    delete approval.signature;
+  });
+  
+  // Reset board votes
+  DEMO_REQUEST.boardVotes = [];
+  
+  // Reset timeline to just submission
+  DEMO_REQUEST.timeline = [
+    {
+      id: 'timeline-submitted',
+      timestamp: new Date().toISOString(),
+      type: 'submitted',
+      userId: 'jason-abustan',
+      userName: 'Jason Abustan',
+      description: 'Request submitted for patio painting approval'
+    }
+  ];
+  
+  // Reset workflow steps
+  DEMO_REQUEST.workflowSteps.forEach(step => {
+    if (step.id === 'step-submission') {
+      step.status = 'completed';
+      step.completedAt = new Date().toISOString();
+      step.completedBy = 'jason-abustan';
+    } else {
+      step.status = 'pending';
+      delete step.completedAt;
+      delete step.completedBy;
+    }
+  });
+};

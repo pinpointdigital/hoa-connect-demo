@@ -1,0 +1,78 @@
+{
+  "name": "hoa-connect-backend",
+  "version": "1.0.0",
+  "description": "HOA Connect Backend - Email/SMS Notification System",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server-demo.js",
+    "start:full": "node src/server.js",
+    "dev": "nodemon src/server-demo.js",
+    "dev:full": "nodemon src/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "build": "npm run clean && babel src -d dist",
+    "clean": "rm -rf dist",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix"
+  },
+  "keywords": [
+    "hoa",
+    "notifications",
+    "email",
+    "sms",
+    "sendgrid",
+    "twilio",
+    "community-management"
+  ],
+  "author": "HOA Connect Team",
+  "license": "MIT",
+  "dependencies": {
+    "@sendgrid/mail": "^7.7.0",
+    "axios": "^1.5.0",
+    "bcryptjs": "^2.4.3",
+    "bull": "^4.11.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "handlebars": "^4.7.8",
+    "helmet": "^7.0.0",
+    "joi": "^17.9.2",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.29.4",
+    "mongoose": "^7.5.0",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.2",
+    "pg": "^8.11.3",
+    "rate-limiter-flexible": "^2.4.2",
+    "redis": "^4.6.7",
+    "socket.io": "^4.8.1",
+    "twilio": "^4.15.0",
+    "uuid": "^9.0.0",
+    "winston": "^3.10.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.9",
+    "@babel/preset-env": "^7.22.9",
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^8.47.0",
+    "eslint-config-node": "^4.1.0",
+    "jest": "^29.6.2",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/hoa-connect-backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/hoa-connect-backend/issues"
+  },
+  "homepage": "https://github.com/your-org/hoa-connect-backend#readme"
+}

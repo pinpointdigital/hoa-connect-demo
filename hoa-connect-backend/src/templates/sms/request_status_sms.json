@@ -1,0 +1,3 @@
+{
+  "text": "HOA Connect: Hi {{homeowner_name}}, your request \"{{request_title}}\" status: {{new_status}}. {{status_message}} Check details at hoaconnect.com. Reply STOP to opt out."
+}

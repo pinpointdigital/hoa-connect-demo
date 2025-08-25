@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "HOA Connect",
+  "name": "HOA Connect - Community Management Platform",
+  "description": "Streamline HOA communications, requests, and community management",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,18 +9,131 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
-      "type": "image/png",
-      "sizes": "192x192"
+      "src": "icons/icon-72x72.svg",
+      "type": "image/svg+xml",
+      "sizes": "72x72",
+      "purpose": "any"
     },
     {
-      "src": "logo512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "src": "icons/icon-96x96.svg",
+      "type": "image/svg+xml",
+      "sizes": "96x96",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-128x128.svg",
+      "type": "image/svg+xml",
+      "sizes": "128x128",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-144x144.svg",
+      "type": "image/svg+xml",
+      "sizes": "144x144",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-152x152.svg",
+      "type": "image/svg+xml",
+      "sizes": "152x152",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192x192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-384x384.svg",
+      "type": "image/svg+xml",
+      "sizes": "384x384",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512x512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-icon-192x192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/maskable-icon-512x512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "portrait-primary",
+  "theme_color": "#2563eb",
+  "background_color": "#f8fafc",
+  "categories": ["productivity", "business", "utilities"],
+  "lang": "en-US",
+  "scope": "/",
+  "shortcuts": [
+    {
+      "name": "Submit Request",
+      "short_name": "New Request",
+      "description": "Submit a new ARC request",
+      "url": "/?action=submit-request",
+      "icons": [
+        {
+          "src": "icons/shortcut-submit.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "My Requests",
+      "short_name": "Requests",
+      "description": "View your current requests",
+      "url": "/?action=view-requests",
+      "icons": [
+        {
+          "src": "icons/shortcut-requests.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "short_name": "Notifications",
+      "description": "Check your notifications",
+      "url": "/?action=notifications",
+      "icons": [
+        {
+          "src": "icons/shortcut-notifications.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/desktop-home.png",
+      "type": "image/png",
+      "sizes": "1280x720",
+      "form_factor": "wide",
+      "label": "HOA Connect Dashboard"
+    },
+    {
+      "src": "screenshots/mobile-home.png",
+      "type": "image/png",
+      "sizes": "375x812",
+      "form_factor": "narrow",
+      "label": "Mobile Dashboard"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
 }

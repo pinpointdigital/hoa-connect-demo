@@ -1,0 +1,3 @@
+{
+  "text": "HOA Connect: Hi {{board_member_name}}, board vote needed for \"{{request_title}}\"{{#if due_date}} by {{due_date}}{{/if}}. Vote at hoaconnect.com. Reply STOP to opt out."
+}

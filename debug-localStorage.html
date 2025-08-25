@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug localStorage</title>
+</head>
+<body>
+    <h1>HOA Connect - Debug localStorage</h1>
+    <button onclick="checkLocalStorage()">Check localStorage</button>
+    <button onclick="testNotification()">Test Notification</button>
+    <pre id="output"></pre>
+
+    <script>
+        function checkLocalStorage() {
+            const output = document.getElementById('output');
+            const demoUsers = localStorage.getItem('demo-users');
+            const requests = localStorage.getItem('demo-shared-requests');
+            
+            output.innerHTML = `
+Demo Users: ${demoUsers ? 'Found' : 'Not found'}
+${demoUsers ? JSON.stringify(JSON.parse(demoUsers), null, 2) : ''}
+
+Requests: ${requests ? 'Found' : 'Not found'}
+${requests ? JSON.stringify(JSON.parse(requests), null, 2) : ''}
+            `;
+        }
+
+        async function testNotification() {
+            try {
+                const response = await fetch('http://localhost:3001/api/notifications/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: 'email',
+                        recipient: 'hello@pinpointdigital.us',
+                        template: 'new_request_submitted',
+                        data: {
+                            management_name: 'Allan Chua',
+                            homeowner_name: 'Jason Abustan',
+                            request_title: 'Debug Test Request',
+                            request_type: 'exterior_modification',
+                            property_address: '123 Oak Street, Rancho Madrina Community',
+                            community_name: 'Rancho Madrina',
+                            review_url: 'http://localhost:3000/management/requests',
+                            request_id: 'debug-test-123'
+                        }
+                    })
+                });
+                
+                const result = await response.json();
+                document.getElementById('output').innerHTML += `\n\nNotification Test Result:\n${JSON.stringify(result, null, 2)}`;
+            } catch (error) {
+                document.getElementById('output').innerHTML += `\n\nNotification Test Error:\n${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+

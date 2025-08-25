@@ -1,0 +1,3 @@
+{
+  "text": "HOA Connect: Reminder {{recipient_name}}, form \"{{form_title}}\"{{#if due_date}} due {{due_date}}{{/if}} still pending. Complete at hoaconnect.com. Reply STOP to opt out."
+}
