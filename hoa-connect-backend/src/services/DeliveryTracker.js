@@ -251,10 +251,11 @@ class DeliveryTracker {
 
       const result = await db.query(query, values);
 
-      return result.rows.map(row => ({
-        ...row,
-        metadata: typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata
-      }));
+      return result.rows.map(row => {
+        const parsedRow = Object.assign({}, row);
+        parsedRow.metadata = typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata;
+        return parsedRow;
+      });
 
     } catch (error) {
       logger.error('Failed to get delivery history:', error);
@@ -282,10 +283,11 @@ class DeliveryTracker {
 
       const result = await db.query(query);
       
-      return result.rows.map(row => ({
-        ...row,
-        metadata: typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata
-      }));
+      return result.rows.map(row => {
+        const parsedRow = Object.assign({}, row);
+        parsedRow.metadata = typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata;
+        return parsedRow;
+      });
 
     } catch (error) {
       logger.error('Failed to get failed deliveries:', error);
