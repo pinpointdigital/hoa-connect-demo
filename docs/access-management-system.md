@@ -776,3 +776,8 @@ const registerDevice = async (userId, deviceData) => {
 
 
 
+
+
+
+
+

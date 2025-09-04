@@ -4,13 +4,11 @@ import { useDemoContext } from '../../contexts/DemoContext';
 import { Form, FormSubmission } from '../../types';
 import { 
   FileText, 
-  Calendar,
   AlertTriangle,
   CheckCircle,
   PenTool,
   Building,
-  X,
-  Save
+  X
 } from 'lucide-react';
 import { OWNER_NOTICE_DISCLOSURE_FORM } from '../../data/mockData';
 
@@ -46,7 +44,6 @@ const FormCompletion: React.FC<FormCompletionProps> = ({
   
   const [showSignatureModal, setShowSignatureModal] = useState(false);
   const [typedName, setTypedName] = useState('');
-  const [isDraft, setIsDraft] = useState(false);
 
   const handleFieldChange = (fieldName: string, value: any) => {
     setFormData(prev => ({
@@ -55,11 +52,7 @@ const FormCompletion: React.FC<FormCompletionProps> = ({
     }));
   };
 
-  const handleSaveDraft = () => {
-    setIsDraft(true);
-    addNotification('Form draft saved for Jason Abustan');
-    alert('Form saved as draft. You can continue completing it later.');
-  };
+
 
   const handleSubmitForm = () => {
     if (!form.requiredSignature) {
@@ -103,9 +96,10 @@ const FormCompletion: React.FC<FormCompletionProps> = ({
   };
 
   const isFormValid = () => {
-    const requiredFields = form.fields?.filter(field => field.required) || [];
-    return requiredFields.every(field => {
-      const value = formData[field.name];
+    // Check the main required fields that are visible in the form
+    const requiredFields = ['ownerName', 'ownerEmail', 'propertyAddress', 'mailingAddress', 'validEmail', 'deliveryPreference'];
+    return requiredFields.every(fieldName => {
+      const value = formData[fieldName];
       return value && value.toString().trim().length > 0;
     });
   };
@@ -113,8 +107,8 @@ const FormCompletion: React.FC<FormCompletionProps> = ({
   const daysRemaining = Math.ceil((new Date(form.dueDate || '').getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-10 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white min-h-[80vh]">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-start justify-center pt-4 pb-8">
+      <div className="relative mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white min-h-[80vh] max-h-[95vh] overflow-y-auto">
         
         {/* Header with Seabreeze Branding */}
         <div className="bg-seabreeze-600 text-white p-6 rounded-t-lg -m-5 mb-6">
@@ -133,9 +127,10 @@ const FormCompletion: React.FC<FormCompletionProps> = ({
             {onClose && (
               <button
                 onClick={onClose}
-                className="text-white hover:text-gray-200"
+                className="text-white hover:text-gray-200 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full p-2 transition-all"
+                title="Close form"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
             )}
           </div>
@@ -358,23 +353,7 @@ const FormCompletion: React.FC<FormCompletionProps> = ({
         </div>
 
         {/* Form Actions */}
-        <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={handleSaveDraft}
-              className="btn-secondary flex items-center space-x-2"
-            >
-              <Save className="w-4 h-4" />
-              <span>Save Draft</span>
-            </button>
-            {isDraft && (
-              <span className="text-sm text-green-600 flex items-center">
-                <CheckCircle className="w-4 h-4 mr-1" />
-                Draft saved
-              </span>
-            )}
-          </div>
-
+        <div className="flex justify-end items-center mt-8 pt-6 border-t border-gray-200">
           <div className="flex items-center space-x-3">
             <div className="text-sm text-gray-500">
               {isFormValid() ? (
@@ -391,8 +370,7 @@ const FormCompletion: React.FC<FormCompletionProps> = ({
             </div>
             <button
               onClick={handleSubmitForm}
-              disabled={!isFormValid()}
-              className="btn-success disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium flex items-center space-x-2 transition-colors"
             >
               <FileText className="w-4 h-4" />
               <span>Submit Form</span>

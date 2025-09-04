@@ -155,3 +155,8 @@ const aiSuggestedDocs = generateAISuggestions(request);
 - **Professional presentation** - Clean, polished, and compelling
 
 **The demo will show your lead exactly how the platform works in real-world scenarios, building trust and demonstrating immediate value. Every feature responds to actual user input, creating an authentic and convincing demonstration.**
+
+
+
+
+

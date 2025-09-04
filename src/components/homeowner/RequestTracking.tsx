@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDemoContext } from '../../contexts/DemoContext';
 import { Request } from '../../types';
@@ -24,6 +25,7 @@ interface RequestTrackingProps {
 }
 
 const RequestTracking: React.FC<RequestTrackingProps> = ({ onClose, onSubmitNewRequest }) => {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { requests, updateRequest, addNotification, setRequestsDirectly } = useDemoContext();
   
@@ -37,15 +39,17 @@ const RequestTracking: React.FC<RequestTrackingProps> = ({ onClose, onSubmitNewR
 
   const canDeleteRequest = (request: Request) => {
     // Can delete if status is 'submitted' and no management review has started
-    return request.status === 'submitted' && !request.managementReview;
+    return request.status === 'submitted';
   };
 
   const canCancelRequest = (request: Request) => {
-    // Can cancel if management review has begun but not yet approved/rejected
-    return (request.status !== 'submitted' && 
-            request.status !== 'approved' && 
-            request.status !== 'rejected' && 
-            request.status !== 'cancelled');
+    // Can cancel if management review has begun but not yet completed/cancelled
+    return (request.status === 'under_review' || 
+            request.status === 'homeowner_reply_needed' ||
+            request.status === 'board_voting' ||
+            request.status === 'cc_r_review' ||
+            request.status === 'neighbor_approval' ||
+            request.status === 'board_review');
   };
 
   const handleDeleteRequest = (requestId: string) => {
@@ -114,15 +118,25 @@ const RequestTracking: React.FC<RequestTrackingProps> = ({ onClose, onSubmitNewR
     switch (status) {
       case 'submitted':
         return <Clock className="w-5 h-5 text-yellow-500" />;
+      case 'under_review':
       case 'cc_r_review':
+        return <FileText className="w-5 h-5 text-blue-500" />;
+      case 'homeowner_reply_needed':
+        return <AlertTriangle className="w-5 h-5 text-orange-500" />;
       case 'neighbor_approval':
         return <Users className="w-5 h-5 text-blue-500" />;
+      case 'board_voting':
       case 'board_review':
         return <Vote className="w-5 h-5 text-purple-500" />;
       case 'approved':
+      case 'in_progress':
+      case 'completed':
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'rejected':
+      case 'disapproved_arc':
+      case 'disapproved_board':
         return <XCircle className="w-5 h-5 text-red-500" />;
+      case 'appeal':
       case 'appeal_requested':
         return <AlertTriangle className="w-5 h-5 text-orange-500" />;
       case 'appeal_review':
@@ -138,18 +152,31 @@ const RequestTracking: React.FC<RequestTrackingProps> = ({ onClose, onSubmitNewR
     switch (status) {
       case 'submitted':
         return 'Submitted - Awaiting Management Review';
+      case 'under_review':
+        return 'Under Management Review';
+      case 'homeowner_reply_needed':
+        return 'Reply Needed - Check Details';
       case 'cc_r_review':
         return 'Under Review - Application Analysis';
       case 'neighbor_approval':
         return 'Neighbor Approval Phase';
+      case 'board_voting':
+        return 'Board Voting in Progress';
       case 'board_review':
         return 'Board Review - Voting in Progress';
       case 'approved':
-        return 'Approved by Board';
+      case 'in_progress':
+        return 'Approved - Work in Progress';
+      case 'completed':
+        return 'Completed Successfully';
       case 'rejected':
-        return 'Rejected';
+      case 'disapproved_arc':
+        return 'Disapproved by Management';
+      case 'disapproved_board':
+        return 'Disapproved by Board';
       case 'cancelled':
         return 'Cancelled by Homeowner';
+      case 'appeal':
       case 'appeal_requested':
         return 'Appeal Submitted - Awaiting Board Review';
       case 'appeal_review':
@@ -182,7 +209,12 @@ const RequestTracking: React.FC<RequestTrackingProps> = ({ onClose, onSubmitNewR
             <button
               onClick={() => {
                 if (onClose) onClose();
-                if (onSubmitNewRequest) onSubmitNewRequest();
+                if (onSubmitNewRequest) {
+                  onSubmitNewRequest();
+                } else {
+                  // Navigate to request submission page
+                  navigate('/homeowner/submit');
+                }
               }}
               className="btn-primary"
             >
@@ -312,14 +344,14 @@ const RequestTracking: React.FC<RequestTrackingProps> = ({ onClose, onSubmitNewR
                   </div>
                 </div>
 
-                {/* Delete Warning for Non-Deletable Requests */}
-                {!canDeleteRequest(request) && request.status !== 'approved' && request.status !== 'rejected' && request.status !== 'cancelled' && (
+                {/* Cancel Option for Requests Under Review */}
+                {canCancelRequest(request) && (
                   <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex items-start space-x-2">
                       <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5" />
                       <div className="flex-1">
                         <p className="text-sm text-yellow-800">
-                          This request cannot be deleted because management review has begun. 
+                          This request is under review and cannot be deleted. 
                           Contact your HOA management company if you need to make changes, or{' '}
                           <button
                             onClick={() => setShowCancelModal(request.id)}

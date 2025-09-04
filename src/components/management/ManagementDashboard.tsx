@@ -37,6 +37,14 @@ const ManagementDashboard: React.FC = () => {
   
   // Filter requests by current community
   const communityRequests = requests.filter(r => r.communityId === activeCommunity || !r.communityId);
+  
+  // Debug logging
+  console.log('ManagementDashboard Debug:', {
+    totalRequests: requests.length,
+    activeCommunity,
+    communityRequests: communityRequests.length,
+    allRequestCommunities: requests.map(r => ({ id: r.id, title: r.title, communityId: r.communityId }))
+  });
 
   const getStatusDisplay = (status: string) => {
     const statusMap: Record<string, { label: string; color: string; icon: string }> = {

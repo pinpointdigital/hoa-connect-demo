@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDemoContext } from '../../contexts/DemoContext';
 import { Request, BoardVote } from '../../types';
@@ -40,7 +40,54 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ request, onClose, onV
   const [signatureData, setSignatureData] = useState('');
   const [typedName, setTypedName] = useState('');
 
-  const boardMembers = getBoardMembers();
+  // State for active board members (reactive to localStorage changes)
+  const [boardMembers, setBoardMembers] = useState(() => {
+    try {
+      const demoUsers = JSON.parse(localStorage.getItem('demo-users') || '[]');
+      const boardUsers = demoUsers.filter((user: any) => user.role === 'board_member');
+      
+      if (boardUsers.length > 0) {
+        console.log('VotingInterface: Loaded board members from demo-users:', boardUsers.map((u: any) => u.name));
+        return boardUsers;
+      }
+    } catch (error) {
+      console.error('Error loading board members from localStorage:', error);
+    }
+    // Fallback to mock data if localStorage fails
+    console.log('VotingInterface: Falling back to mock data');
+    return getBoardMembers();
+  });
+
+  // Update board members when localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      try {
+        const demoUsers = JSON.parse(localStorage.getItem('demo-users') || '[]');
+        const boardUsers = demoUsers.filter((user: any) => user.role === 'board_member');
+        
+        if (boardUsers.length > 0) {
+          console.log('VotingInterface: Updated board members from demo-users:', boardUsers.map((u: any) => u.name));
+          setBoardMembers(boardUsers);
+        } else {
+          console.log('VotingInterface: No board members in demo-users, using mock data');
+          setBoardMembers(getBoardMembers());
+        }
+      } catch (error) {
+        console.error('Error updating board members from localStorage:', error);
+      }
+    };
+
+    // Listen for localStorage changes
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check for changes on component mount/update
+    const interval = setInterval(handleStorageChange, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
   const currentUserVote = liveRequest.boardVotes?.find(v => v.boardMemberId === currentUser?.id);
   const hasVoted = !!currentUserVote;
   
@@ -423,7 +470,7 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ request, onClose, onV
               event.userId !== 'system' &&
               (event.description.includes('Board discussion:') || 
                event.description.includes('Board vote:') ||
-               boardMembers.some(member => member.id === event.userId))
+               boardMembers.some((member: any) => member.id === event.userId))
             )
             .map((event) => (
               <div key={event.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
@@ -454,7 +501,7 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ request, onClose, onV
           
           {liveRequest.timeline.filter(event => 
             event.type === 'comment' && 
-            boardMembers.some(member => member.id === event.userId)
+            boardMembers.some((member: any) => member.id === event.userId)
           ).length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
@@ -506,8 +553,8 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ request, onClose, onV
                 >
                   <option value="">All Board Members</option>
                   {boardMembers
-                    .filter(member => member.id !== currentUser?.id)
-                    .map((member) => (
+                    .filter((member: any) => member.id !== currentUser?.id)
+                    .map((member: any) => (
                       <option key={member.id} value={member.name}>
                         {member.name} ({member.boardMemberData?.position.replace('_', ' ')})
                       </option>
@@ -559,7 +606,7 @@ const VotingInterface: React.FC<VotingInterfaceProps> = ({ request, onClose, onV
 
         {/* Board Member Status */}
         <div className="space-y-2">
-          {boardMembers.map((member) => {
+          {boardMembers.map((member: any) => {
             const memberVote = liveRequest.boardVotes?.find(v => v.boardMemberId === member.id);
             return (
               <div key={member.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">

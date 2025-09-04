@@ -148,7 +148,8 @@ export const DEMO_USERS: User[] = [
     boardMemberData: {
       position: 'president',
       termStart: '2023-01-01',
-      termEnd: '2024-12-31'
+      termEnd: '2024-12-31',
+      canManageUsers: true
     }
   },
   {

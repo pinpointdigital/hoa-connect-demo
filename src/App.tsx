@@ -5,6 +5,7 @@ import { DemoProvider } from './contexts/DemoContext';
 import { SocketProvider } from './contexts/SocketContext';
 import Layout from './components/layout/Layout';
 import ManagementDashboard from './components/management/ManagementDashboard';
+import BoardMemberManagement from './components/management/BoardMemberManagement';
 import BoardDashboard from './components/board/BoardDashboard';
 import HomeownerDashboard from './components/homeowner/HomeownerDashboard';
 import RequestSubmission from './components/homeowner/RequestSubmission';
@@ -73,15 +74,34 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  console.log('Dashboard rendering for user:', currentUser.name, 'Role:', currentUser.role);
+
   switch (currentUser.role) {
     case 'management':
+      console.log('Rendering ManagementDashboard');
       return <ManagementDashboard />;
     case 'board_member':
+      console.log('Rendering BoardDashboard');
       return <BoardDashboard />;
     case 'homeowner':
+      console.log('Rendering HomeownerDashboard');
+      return <HomeownerDashboard />;
     default:
+      console.log('Rendering default HomeownerDashboard for role:', currentUser.role);
       return <HomeownerDashboard />;
   }
+};
+
+// Dashboard wrapper with key to force re-render on user change - BULLETPROOF VERSION
+const DashboardWithKey: React.FC = () => {
+  const { currentUser } = useAuth();
+  
+  // Create a unique key that includes both user ID and role to ensure complete re-render
+  const dashboardKey = currentUser ? `${currentUser.id}-${currentUser.role}` : 'no-user';
+  
+  console.log('🔄 DashboardWithKey rendering for user:', currentUser?.name, 'Role:', currentUser?.role, 'Key:', dashboardKey);
+  
+  return <Dashboard key={dashboardKey} />;
 };
 
 // Main App component with providers and routing
@@ -90,8 +110,8 @@ const AppContent: React.FC = () => {
     <Router>
       <Layout>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/homeowner" element={<Dashboard />} />
+          <Route path="/" element={<DashboardWithKey />} />
+          <Route path="/homeowner" element={<DashboardWithKey />} />
           <Route path="/homeowner/submit" element={<RequestSubmission />} />
           <Route path="/homeowner/requests" element={<RequestTracking />} />
           <Route path="/homeowner/requests/:id" element={<RequestDetailsPage />} />
@@ -100,6 +120,7 @@ const AppContent: React.FC = () => {
           <Route path="/homeowner/ccr-review" element={<CCRReviewPage />} />
           <Route path="/homeowner/appeal" element={<AppealRequestPage />} />
           <Route path="/management" element={<ManagementDashboard />} />
+          <Route path="/management/board-members" element={<BoardMemberManagement />} />
           <Route path="/board" element={<BoardDashboard />} />
           <Route path="/board/voting" element={<VotingPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

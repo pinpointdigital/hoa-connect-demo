@@ -57,17 +57,26 @@ const Navigation: React.FC = () => {
           { name: 'Dashboard', href: '/management', icon: Home },
           { name: 'Requests', href: '/management/requests', icon: ClipboardList },
           { name: 'Communications Center', href: '/management/forms', icon: Megaphone },
+          { name: 'Board Members', href: '/management/board-members', icon: Users },
           { name: 'Communities', href: '/management/communities', icon: Building },
           { name: 'Notifications', href: '/management/notifications', icon: Bell },
         ];
       case 'board_member':
-        return [
+        const boardNavItems = [
           { name: 'Dashboard', href: '/board', icon: Home },
           { name: 'Pending Votes', href: '/board/votes', icon: Vote },
           { name: 'Discussions', href: '/board/discussions', icon: Users },
           { name: 'Request History', href: '/board/history', icon: ClipboardList },
           { name: 'Notifications', href: '/board/notifications', icon: Bell },
         ];
+        
+        // Add Board Members management for presidents or users with permission
+        if (currentUser.boardMemberData?.position === 'president' || 
+            currentUser.boardMemberData?.canManageUsers) {
+          boardNavItems.splice(3, 0, { name: 'Board Members', href: '/management/board-members', icon: UserCheck });
+        }
+        
+        return boardNavItems;
       default:
         return [];
     }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Request, RequestStatus, TimelineEvent } from '../../types';
 import { 
   X, 
@@ -156,15 +156,15 @@ const RequestReview: React.FC<RequestReviewProps> = ({ request, onClose, onAppro
     { id: 'insurance-cert', name: 'Insurance Certificate Request', required: false }
   ];
 
-  // Mock neighbors data
-  const suggestedNeighbors = [
+  // Mock neighbors data - using state to allow dynamic additions
+  const [suggestedNeighbors, setSuggestedNeighbors] = useState([
     {
       id: 'robert-thompson',
       name: 'Robert & Mary Thompson',
       address: '121 Oak Street',
       position: 'Left Adjacent',
       autoIdentified: true,
-      included: selectedNeighbors.includes('robert-thompson')
+      included: false
     },
     {
       id: 'james-davis', 
@@ -172,7 +172,7 @@ const RequestReview: React.FC<RequestReviewProps> = ({ request, onClose, onAppro
       address: '125 Oak Street',
       position: 'Right Adjacent',
       autoIdentified: true,
-      included: selectedNeighbors.includes('james-davis')
+      included: false
     },
     {
       id: 'carlos-gonzalez',
@@ -180,9 +180,19 @@ const RequestReview: React.FC<RequestReviewProps> = ({ request, onClose, onAppro
       address: '124 Maple Street', 
       position: 'Rear Adjacent',
       autoIdentified: true,
-      included: selectedNeighbors.includes('carlos-gonzalez')
+      included: false
     }
-  ];
+  ]);
+
+  // Update the included property when selectedNeighbors changes
+  useEffect(() => {
+    setSuggestedNeighbors(prev => 
+      prev.map(neighbor => ({
+        ...neighbor,
+        included: selectedNeighbors.includes(neighbor.id)
+      }))
+    );
+  }, [selectedNeighbors]);
 
   // Mock team members
   const teamMembers = [
@@ -220,6 +230,35 @@ const RequestReview: React.FC<RequestReviewProps> = ({ request, onClose, onAppro
       isPublic
     }
   });
+
+  // Auto-save function for tab configurations
+  const saveCurrentSelections = (neighbors: string[], govDocs: string[], forms: string[]) => {
+    console.log('💾 Auto-saving tab selections:', { neighbors: neighbors.length, govDocs: govDocs.length, forms: forms.length });
+    
+    // Create neighbor approvals for selected neighbors
+    const neighborApprovals = neighbors.map(neighborId => {
+      const neighbor = suggestedNeighbors.find((n: any) => n.id === neighborId);
+      return {
+        id: `approval-${neighborId}-${Date.now()}`,
+        neighborId,
+        neighborAddress: neighbor?.address || 'Unknown Address',
+        status: 'pending' as const,
+        submittedAt: new Date().toISOString()
+      };
+    });
+
+    // Update request with current selections (preserve existing timeline)
+    const updatedRequest = {
+      ...request,
+      updatedAt: new Date().toISOString(),
+      governingDocsReferences: govDocs,
+      requiredForms: forms,
+      neighborApprovals: [...(request.neighborApprovals?.filter(na => !neighbors.some(n => n === na.neighborId)) || []), ...neighborApprovals]
+    };
+    
+    console.log('💾 Auto-saving request with selections');
+    onApprove(updatedRequest);
+  };
 
   const handleStartReview = () => {
     // Create timeline event for starting review
@@ -309,24 +348,49 @@ const RequestReview: React.FC<RequestReviewProps> = ({ request, onClose, onAppro
   };
 
   const handleNeighborToggle = (neighborId: string) => {
-    setSelectedNeighbors(prev => 
-      prev.includes(neighborId) 
+    setSelectedNeighbors(prev => {
+      const newSelection = prev.includes(neighborId) 
         ? prev.filter(id => id !== neighborId)
-        : [...prev, neighborId]
-    );
+        : [...prev, neighborId];
+      
+      // Auto-save neighbor selection changes
+      setTimeout(() => saveCurrentSelections(newSelection, selectedGoverningDocs, selectedForms), 100);
+      return newSelection;
+    });
   };
 
   const handleAddManualNeighbor = () => {
     if (newNeighborAddress && newNeighborName && newNeighborPosition) {
-      // In a real app, this would add to the database
-      console.log('Adding manual neighbor:', { 
-        address: newNeighborAddress, 
-        name: newNeighborName, 
-        position: newNeighborPosition 
+      // Create a new neighbor ID
+      const newNeighborId = `manual-${Date.now()}`;
+      
+      // Create the new neighbor object
+      const newNeighbor = {
+        id: newNeighborId,
+        name: newNeighborName,
+        address: newNeighborAddress,
+        position: newNeighborPosition,
+        autoIdentified: false,
+        included: true // Automatically include the manually added neighbor
+      };
+      
+      // Add to suggested neighbors list using state setter
+      setSuggestedNeighbors(prev => [...prev, newNeighbor]);
+      
+      // Automatically select the new neighbor
+      setSelectedNeighbors(prev => {
+        const newSelection = [...prev, newNeighborId];
+        // Auto-save the selection
+        setTimeout(() => saveCurrentSelections(newSelection, selectedGoverningDocs, selectedForms), 100);
+        return newSelection;
       });
+      
+      // Clear the form
       setNewNeighborAddress('');
       setNewNeighborName('');
       setNewNeighborPosition('');
+      
+      console.log('Added manual neighbor:', newNeighbor);
     }
   };
 
@@ -1304,9 +1368,17 @@ const RequestReview: React.FC<RequestReviewProps> = ({ request, onClose, onAppro
                         checked={selectedGoverningDocs.includes(doc.id)}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setSelectedGoverningDocs(prev => [...prev, doc.id]);
+                            setSelectedGoverningDocs(prev => {
+                              const newSelection = [...prev, doc.id];
+                              setTimeout(() => saveCurrentSelections(selectedNeighbors, newSelection, selectedForms), 100);
+                              return newSelection;
+                            });
                           } else {
-                            setSelectedGoverningDocs(prev => prev.filter(id => id !== doc.id));
+                            setSelectedGoverningDocs(prev => {
+                              const newSelection = prev.filter(id => id !== doc.id);
+                              setTimeout(() => saveCurrentSelections(selectedNeighbors, newSelection, selectedForms), 100);
+                              return newSelection;
+                            });
                           }
                         }}
                         className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
@@ -1359,9 +1431,17 @@ const RequestReview: React.FC<RequestReviewProps> = ({ request, onClose, onAppro
                         checked={selectedForms.includes(form.id)}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setSelectedForms(prev => [...prev, form.id]);
+                            setSelectedForms(prev => {
+                              const newSelection = [...prev, form.id];
+                              setTimeout(() => saveCurrentSelections(selectedNeighbors, selectedGoverningDocs, newSelection), 100);
+                              return newSelection;
+                            });
                           } else {
-                            setSelectedForms(prev => prev.filter(id => id !== form.id));
+                            setSelectedForms(prev => {
+                              const newSelection = prev.filter(id => id !== form.id);
+                              setTimeout(() => saveCurrentSelections(selectedNeighbors, selectedGoverningDocs, newSelection), 100);
+                              return newSelection;
+                            });
                           }
                         }}
                         className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"

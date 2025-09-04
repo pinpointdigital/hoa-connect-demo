@@ -45,6 +45,7 @@ export interface BoardMemberData {
   position: 'president' | 'vice_president' | 'treasurer' | 'secretary' | 'member';
   termStart: string;
   termEnd: string;
+  canManageUsers?: boolean; // Permission to manage board members
 }
 
 export interface EmergencyContact {

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User } from '../types';
 import { getUserById } from '../data/mockData';
 
@@ -30,34 +31,73 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentCommunity, setCurrentCommunity] = useState<string | null>(null);
 
-  // Load user from localStorage on mount
+  // Load community from localStorage on mount
   useEffect(() => {
-    const loadFromLocal = (userId: string) => {
+    const storedCommunity = localStorage.getItem('hoa-connect-current-community');
+    if (storedCommunity) {
+      setCurrentCommunity(storedCommunity);
+    } else {
+      setCurrentCommunity('rancho-madrina'); // Default community
+      localStorage.setItem('hoa-connect-current-community', 'rancho-madrina');
+    }
+  }, []);
+
+  // Load user from localStorage on mount - BULLETPROOF VERSION
+  useEffect(() => {
+    const loadUserRobustly = () => {
+      try {
+        const storedUserId = localStorage.getItem('hoa-connect-demo-user');
+        console.log('🔄 Loading stored user ID:', storedUserId);
+        
+        if (storedUserId) {
+          // Try to load from localStorage first
       try {
         const demoUsers = JSON.parse(localStorage.getItem('demo-users') || '[]');
-        return demoUsers.find((user: User) => user.id === userId);
-      } catch (error) {
-        console.error('Error loading user from localStorage:', error);
-        return null;
-      }
-    };
-
-    const storedUserId = localStorage.getItem('hoa-connect-demo-user');
-    if (storedUserId) {
-      const storedUser = loadFromLocal(storedUserId);
+            const storedUser = demoUsers.find((user: User) => user.id === storedUserId);
+            
       if (storedUser) {
+              console.log('✅ Loaded user from localStorage:', storedUser.name, storedUser.role);
         setCurrentUser(storedUser);
         return;
       }
+          } catch (localStorageError) {
+            console.warn('⚠️ Error loading from localStorage:', localStorageError);
+          }
+          
+          // Fallback to mockData
+          const mockUser = getUserById(storedUserId);
+          if (mockUser) {
+            console.log('✅ Loaded user from mockData:', mockUser.name, mockUser.role);
+            setCurrentUser(mockUser);
+            return;
+          }
+          
+          console.warn('⚠️ User not found in localStorage or mockData:', storedUserId);
     }
 
     // Default to Allan Chua for demo (Management Dashboard)
-    const fallbackStored = loadFromLocal('allan-chua');
+        console.log('🔄 Loading default user (Allan Chua)');
+        try {
+          const demoUsers = JSON.parse(localStorage.getItem('demo-users') || '[]');
+          const fallbackStored = demoUsers.find((user: User) => user.id === 'allan-chua');
     const defaultUser = fallbackStored || getUserById('allan-chua');
+          
     if (defaultUser) {
+            console.log('✅ Loaded default user:', defaultUser.name, defaultUser.role);
       setCurrentUser(defaultUser);
       localStorage.setItem('hoa-connect-demo-user', defaultUser.id);
-    }
+          } else {
+            console.error('❌ Could not load default user');
+          }
+        } catch (error) {
+          console.error('❌ Error loading default user:', error);
+        }
+      } catch (error) {
+        console.error('❌ Critical error in user loading:', error);
+      }
+    };
+
+    loadUserRobustly();
   }, []);
 
   const login = (userId: string) => {
@@ -67,8 +107,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user = storedUser || getUserById(userId);
       
       if (user) {
+        console.log('Switching to user:', user.name, 'Role:', user.role);
         setCurrentUser(user);
         localStorage.setItem('hoa-connect-demo-user', userId);
+      } else {
+        console.error('User not found:', userId);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -137,8 +180,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 // Demo user selector component for presentations - matches screenshot functionality
 export const DemoUserSelector: React.FC = () => {
-  const { currentUser, switchRole } = useAuth();
+  const { currentUser, login } = useAuth();
+  const navigate = useNavigate();
   const [isMinimized, setIsMinimized] = React.useState(true);
+
+  // Helper function to get the correct dashboard route for a user
+  const getDashboardRoute = (user: User): string => {
+    switch (user.role) {
+      case 'homeowner':
+        return '/homeowner';
+      case 'management':
+        return '/management';
+      case 'board_member':
+        return '/board';
+      default:
+        return '/';
+    }
+  };
   const [currentMode, setCurrentMode] = React.useState('present');
   const [showEmailModal, setShowEmailModal] = React.useState(false);
   const [showSMSModal, setShowSMSModal] = React.useState(false);
@@ -147,15 +205,152 @@ export const DemoUserSelector: React.FC = () => {
   const [emailResult, setEmailResult] = React.useState<any>(null);
   const [smsResult, setSmsResult] = React.useState<any>(null);
 
-  const userOptions = [
-    { id: 'jason-abustan', name: 'Jason Abustan', role: 'Homeowner' },
-    { id: 'allan-chua', name: 'Allan Chua', role: 'HOA Management' },
-    { id: 'robert-ferguson', name: 'Robert Ferguson', role: 'Board President' },
-    { id: 'dean-martin', name: 'Dean Martin', role: 'Board Vice President' },
-    { id: 'frank-sinatra', name: 'Frank Sinatra', role: 'Board Treasurer' },
-    { id: 'david-kim', name: 'David Kim', role: 'Board Secretary' },
-    { id: 'patricia-williams', name: 'Patricia Williams', role: 'Board Member' },
-  ];
+  // State for user options to make them reactive
+  const [userOptions, setUserOptions] = React.useState<Array<{id: string, name: string, role: string}>>([]);
+
+  // Load user options on component mount and when needed
+  const loadUserOptions = React.useCallback(() => {
+    try {
+      // Get users from localStorage first
+      const storedUsers = JSON.parse(localStorage.getItem('demo-users') || '[]');
+      
+      // Get users from mockData as fallback
+      const { DEMO_USERS } = require('../data/mockData');
+      
+      // Combine and deduplicate users (localStorage takes precedence)
+      const allUsers = [...storedUsers];
+      DEMO_USERS.forEach((mockUser: User) => {
+        if (!allUsers.find(user => user.id === mockUser.id)) {
+          allUsers.push(mockUser);
+        }
+      });
+      
+      // Filter to only include the specific users we want:
+      // 1. Jason Abustan (Homeowner)
+      // 2. Allan Chua (HOA Management) 
+      // 3. Active Board Members from localStorage
+      const filteredUsers = allUsers.filter((user: User) => {
+        // Always include Jason (Homeowner)
+        if (user.id === 'jason-abustan') return true;
+        
+        // Always include Allan (HOA Management)
+        if (user.id === 'allan-chua') return true;
+        
+        // Include active board members (from localStorage or specific mock users)
+        if (user.role === 'board_member') {
+          // If user is in localStorage (active board members), include them
+          const isInLocalStorage = storedUsers.some((stored: User) => stored.id === user.id);
+          if (isInLocalStorage) return true;
+          
+          // If no board members in localStorage, include default mock board members
+          const hasStoredBoardMembers = storedUsers.some((stored: User) => stored.role === 'board_member');
+          if (!hasStoredBoardMembers) {
+            // Include default board members: Robert Ferguson, Dean Martin, Frank Sinatra, David Kim, Patricia Williams
+            return ['robert-ferguson', 'dean-martin', 'frank-sinatra', 'david-kim', 'patricia-williams'].includes(user.id);
+          }
+        }
+        
+        return false;
+      });
+      
+      // Sort users by group: HOA Manager, Homeowner, Board of Directors
+      const sortedUsers = filteredUsers.sort((a: User, b: User) => {
+        // Group priority: management (1), homeowner (2), board_member (3)
+        const getGroupPriority = (user: User) => {
+          if (user.role === 'management') return 1;
+          if (user.role === 'homeowner') return 2;
+          if (user.role === 'board_member') return 3;
+          return 4;
+        };
+        
+        const aPriority = getGroupPriority(a);
+        const bPriority = getGroupPriority(b);
+        
+        if (aPriority !== bPriority) {
+          return aPriority - bPriority;
+        }
+        
+        // Within board members, sort by position hierarchy
+        if (a.role === 'board_member' && b.role === 'board_member') {
+          const getPositionPriority = (position?: string) => {
+            if (position === 'president') return 1;
+            if (position === 'vice_president') return 2;
+            if (position === 'treasurer') return 3;
+            if (position === 'secretary') return 4;
+            return 5; // member
+          };
+          
+          const aPos = getPositionPriority(a.boardMemberData?.position);
+          const bPos = getPositionPriority(b.boardMemberData?.position);
+          
+          if (aPos !== bPos) {
+            return aPos - bPos;
+          }
+        }
+        
+        // Finally sort by name
+        return a.name.localeCompare(b.name);
+      });
+      
+      // Format for dropdown
+      const options = sortedUsers.map((user: User) => ({
+        id: user.id,
+        name: user.name,
+        role: user.role === 'homeowner' ? 'Homeowner' : 
+              user.role === 'management' ? 'HOA Management' :
+              user.role === 'board_member' ? `Board ${user.boardMemberData?.position?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Member'}` :
+              user.role
+      }));
+      
+      console.log('Demo Switcher: Loaded user options:', options.map(o => `${o.name} (${o.role})`));
+      setUserOptions(options);
+      return options;
+    } catch (error) {
+      console.error('Error loading user options:', error);
+      setUserOptions([]);
+      return [];
+    }
+  }, []);
+
+  // Load user options on mount and periodically refresh
+  React.useEffect(() => {
+    loadUserOptions();
+    
+    // Refresh user options periodically to detect board member changes
+    const interval = setInterval(() => {
+      loadUserOptions();
+    }, 2000); // Check every 2 seconds
+    
+    return () => clearInterval(interval);
+  }, [loadUserOptions]);
+
+  // Listen for localStorage changes to detect user switches from other tabs/components
+  React.useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'hoa-connect-demo-user' && e.newValue !== e.oldValue) {
+        console.log('🔄 Detected user change in localStorage:', e.oldValue, '->', e.newValue);
+        console.log('🔄 Current localStorage keys before reload:', Object.keys(localStorage));
+        console.log('🔄 Current demo-shared-requests before reload:', localStorage.getItem('demo-shared-requests')?.substring(0, 100));
+        if (e.newValue) {
+          // Reload user options and current user
+          loadUserOptions();
+          
+          // Force page reload to ensure clean state
+          setTimeout(() => {
+            // Force localStorage to be written before reload
+            const currentRequests = localStorage.getItem('demo-shared-requests');
+            console.log('🔄 Pre-reload localStorage check:', currentRequests ? JSON.parse(currentRequests).length : 0, 'requests');
+            console.log('🔄 Pre-reload ALL localStorage keys:', Object.keys(localStorage));
+            console.log('🔄 Pre-reload demo-shared-requests content:', currentRequests?.substring(0, 200));
+            window.location.reload();
+          }, 100);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [loadUserOptions]);
 
   const handleTestEmail = () => {
     setEmailResult(null);
@@ -290,8 +485,43 @@ export const DemoUserSelector: React.FC = () => {
             <select
               value={currentUser?.id || ''}
               onChange={(e) => {
-                switchRole(e.target.value);
-                setIsMinimized(true);
+                const newUserId = e.target.value;
+                console.log('User selection changed to:', newUserId);
+                
+                if (newUserId && newUserId !== currentUser?.id) {
+                  // Robust user switching without page reload
+                  try {
+                    // Get the new user data
+                    const storedUsers = JSON.parse(localStorage.getItem('demo-users') || '[]');
+                    const { getUserById } = require('../data/mockData');
+                    const storedUser = storedUsers.find((u: User) => u.id === newUserId);
+                    const newUser = storedUser || getUserById(newUserId);
+                    
+                    if (newUser) {
+                      console.log('Switching to user:', newUser.name, 'Role:', newUser.role);
+                      
+                      // Update localStorage first
+                      localStorage.setItem('hoa-connect-demo-user', newUserId);
+                      
+                      // Update current user state using login function
+                      login(newUserId);
+                      
+                      // Navigate to the user's appropriate dashboard
+                      const dashboardRoute = getDashboardRoute(newUser);
+                      console.log('Navigating to:', dashboardRoute);
+                      navigate(dashboardRoute);
+                      
+                      // Minimize the demo switcher after selection
+                      setIsMinimized(true);
+                    } else {
+                      console.error('User not found:', newUserId);
+                      alert('Error: User not found. Please try again.');
+                    }
+                  } catch (error) {
+                    console.error('Error switching user:', error);
+                    alert('Error switching user. Please try again.');
+                  }
+                }
               }}
               className="w-full bg-slate-700 text-white rounded px-3 py-2 pr-8 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >

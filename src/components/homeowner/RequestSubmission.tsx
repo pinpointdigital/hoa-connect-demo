@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDemoContext } from '../../contexts/DemoContext';
 import { Request, RequestType } from '../../types';
@@ -10,7 +11,8 @@ import {
   Building,
   X,
   Check,
-  Upload
+  Upload,
+  Sparkles
 } from 'lucide-react';
 
 interface RequestSubmissionProps {
@@ -19,6 +21,7 @@ interface RequestSubmissionProps {
 }
 
 const RequestSubmission: React.FC<RequestSubmissionProps> = ({ onClose, onSubmit }) => {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const { addRequest } = useDemoContext();
   
@@ -36,6 +39,95 @@ const RequestSubmission: React.FC<RequestSubmissionProps> = ({ onClose, onSubmit
     lotNumber: '',
     squareFootage: '' // For ADU/JADU requests
   });
+
+  // AI-powered content generator for demo purposes
+  const generateAIContent = () => {
+    const contentTemplates = {
+      'exterior_modification': {
+        'Paint/Color Change': {
+          title: 'Exterior Paint Color Change - Front Door and Trim',
+          description: 'I would like to repaint my front door from the current beige color to a deep navy blue (Benjamin Moore Naval 2063-10) and update the window trim to match. The door is a standard 36" wooden entry door with decorative glass panels. I plan to use high-quality exterior paint suitable for our climate conditions. The trim work includes 4 front-facing windows and the door frame. All surfaces will be properly prepared with primer before painting.'
+        },
+        'Door Replacement': {
+          title: 'Front Entry Door Replacement with Sidelights',
+          description: 'I am requesting approval to replace my existing front entry door with a new fiberglass door system that includes decorative sidelights. The new door will be 36" wide with two 12" sidelights, finished in a rich mahogany stain. The door features raised panels and decorative glass inserts that complement our home\'s traditional architecture. Installation will be performed by licensed contractors and will include proper weatherproofing and hardware.'
+        },
+        'Window Replacement': {
+          title: 'Energy-Efficient Window Replacement - Living Room',
+          description: 'I would like to replace three existing single-pane windows in my living room with new double-pane, energy-efficient windows. The new windows will be vinyl-framed with Low-E glass coating and argon gas fill for improved insulation. Each window measures approximately 48" x 36" and will maintain the same grid pattern as the existing windows to preserve the home\'s aesthetic. Professional installation will ensure proper sealing and energy efficiency.'
+        },
+        'Siding Repair': {
+          title: 'Fiber Cement Siding Repair and Touch-up',
+          description: 'I need to repair damaged fiber cement siding on the east side of my home where moisture has caused some boards to warp and crack. The repair will involve replacing 6 damaged boards (each 8 feet long) with matching HardiePlank siding in the same color and texture. After installation, the new siding will be primed and painted to match the existing exterior color. All work will be performed by licensed contractors.'
+        },
+        'Roofing': {
+          title: 'Asphalt Shingle Roof Replacement',
+          description: 'I am requesting approval to replace my existing asphalt shingle roof which is nearing the end of its 20-year lifespan. The new roof will feature architectural shingles in a charcoal gray color (GAF Timberline HD) with improved wind resistance and warranty coverage. The project includes complete tear-off of existing materials, new underlayment, and proper ventilation installation. All work will be performed by licensed roofing contractors with proper permits.'
+        }
+      },
+      'landscaping': {
+        'Tree Removal': {
+          title: 'Diseased Oak Tree Removal - Backyard',
+          description: 'I need to remove a large oak tree in my backyard that has been diagnosed with oak wilt disease by a certified arborist. The tree is approximately 40 feet tall and poses a safety risk to my home and neighboring properties. I have obtained quotes from three licensed tree removal services and will ensure proper cleanup and stump grinding. The removal will be conducted following all local environmental guidelines.'
+        },
+        'Garden Installation': {
+          title: 'Native Plant Garden Installation - Front Yard',
+          description: 'I would like to install a drought-resistant native plant garden in my front yard to replace the existing lawn area. The garden will feature California native plants including lavender, sage, and ornamental grasses, arranged in a naturalistic design. The project includes installing a drip irrigation system and decorative mulch pathways. All plants are selected for low water usage and compatibility with our local climate and soil conditions.'
+        },
+        'Tree Planting': {
+          title: 'Japanese Maple Tree Planting - Side Yard',
+          description: 'I would like to plant a Japanese Maple tree (Acer palmatum) in my side yard to provide shade and enhance the landscape design. The tree will be approximately 6 feet tall at planting and will be positioned 15 feet from the house and 10 feet from property lines. The planting will include proper soil preparation, mulching, and a drip irrigation system for establishment. The tree species is well-suited to our climate and will complement the existing landscape.'
+        },
+        'Hardscaping': {
+          title: 'Natural Stone Pathway Installation',
+          description: 'I am requesting approval to install a natural stone pathway connecting my front entrance to the driveway. The pathway will be constructed using flagstone pavers in earth tones, set on a gravel base with polymeric sand joints. The path will be 4 feet wide and approximately 25 feet long, with landscape lighting for safety and aesthetics. Professional installation will ensure proper drainage and longevity.'
+        }
+      },
+      'structural_addition': {
+        'Deck Addition': {
+          title: 'Composite Deck Addition - Rear Patio',
+          description: 'I am requesting approval to construct a 16\' x 20\' composite deck extending from my rear sliding door. The deck will be built with Trex composite decking materials in a cedar color, supported by pressure-treated lumber framing. The design includes built-in bench seating and decorative railings that complement the home\'s existing architecture. All construction will be performed by licensed contractors with proper permits and inspections.'
+        },
+        'Patio Cover': {
+          title: 'Aluminum Patio Cover Installation',
+          description: 'I would like to install an aluminum patio cover over my existing concrete patio to provide shade and weather protection. The cover will measure 14\' x 18\' and feature a white powder-coated aluminum frame with corrugated polycarbonate panels for natural light transmission. The structure will be professionally engineered and installed with proper footings and drainage considerations.'
+        }
+      },
+      'adu_jadu': {
+        'ADU - Detached': {
+          title: 'Detached ADU Construction - Backyard Studio',
+          description: 'I am requesting approval to construct a 600 square foot detached Accessory Dwelling Unit (ADU) in my backyard. The single-story structure will feature one bedroom, one bathroom, a kitchenette, and living area. The exterior design will complement the main house with matching materials and colors. The ADU will include separate utilities, parking space, and landscaping. All construction will comply with current building codes and zoning requirements.'
+        },
+        'JADU - Room/Garage Conversion': {
+          title: 'Garage Conversion to Junior ADU',
+          description: 'I would like to convert my existing 400 square foot attached garage into a Junior Accessory Dwelling Unit (JADU). The conversion will include adding insulation, drywall, flooring, and a kitchenette while maintaining the existing garage door for aesthetic continuity. The unit will share utilities with the main house and include a separate entrance. Professional contractors will handle all electrical, plumbing, and structural modifications.'
+        },
+        'ADU - Attached': {
+          title: 'Attached ADU Addition - Side of House',
+          description: 'I am requesting approval to construct a 500 square foot attached Accessory Dwelling Unit (ADU) on the side of my existing home. The single-story addition will feature one bedroom, one bathroom, and a combined kitchen/living area. The exterior design will match the main house with identical roofing materials, siding, and window styles. The ADU will have separate utilities and a private entrance, with dedicated parking space included in the design.'
+        },
+        'ADU - 2nd Floor Addition': {
+          title: 'Second Floor ADU Addition Above Garage',
+          description: 'I would like to construct a 650 square foot second-floor ADU above my existing two-car garage. The unit will include one bedroom, one bathroom, and an open-concept kitchen/living area with vaulted ceilings. Access will be provided via an external staircase on the side of the garage. The addition will match the existing home\'s architectural style and materials, with proper structural reinforcement of the garage foundation.'
+        }
+      }
+    };
+
+    const currentType = formData.type as keyof typeof contentTemplates;
+    const currentSubtype = formData.subtype;
+    
+    if (currentType && currentSubtype && contentTemplates[currentType]) {
+      const typeTemplates = contentTemplates[currentType] as Record<string, { title: string; description: string }>;
+      if (typeTemplates[currentSubtype]) {
+        const content = typeTemplates[currentSubtype];
+        setFormData(prev => ({
+          ...prev,
+          title: content.title,
+          description: content.description
+        }));
+      }
+    }
+  };
 
   const requestTypes = [
     {
@@ -229,7 +321,14 @@ const RequestSubmission: React.FC<RequestSubmissionProps> = ({ onClose, onSubmit
     
     // Show success and close
     alert('Request submitted successfully! Switch to Allan Chua (HOA Management) to see the instant update.');
-    onClose?.();
+    
+    // Close modal if used as modal, navigate if used as route
+    if (onClose) {
+      onClose();
+    } else {
+      // Navigate back to homeowner dashboard when used as a route
+      navigate('/homeowner');
+    }
   };
 
   const renderStepIndicator = () => (
@@ -425,9 +524,22 @@ const RequestSubmission: React.FC<RequestSubmissionProps> = ({ onClose, onSubmit
   const renderStep3 = () => (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
           Basic Request Details
         </h3>
+          {formData.type && formData.subtype && (
+            <button
+              type="button"
+              onClick={generateAIContent}
+              className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors border border-blue-200 hover:border-blue-300"
+              title="Auto-fill with AI-generated content for demo"
+            >
+              <Sparkles className="w-4 h-4 mr-1.5" />
+              Auto-fill Demo Content
+            </button>
+          )}
+        </div>
         
         <div className="space-y-4">
           <div>
