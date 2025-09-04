@@ -1,4 +1,5 @@
 import { User } from '../types';
+import { API_CONFIG } from '../config/api';
 
 export interface NotificationData {
   type: 'email' | 'sms';
@@ -20,9 +21,9 @@ class NotificationService {
   private isProduction: boolean;
 
   constructor() {
-    // Use environment variable or fallback to localhost for development
-    this.apiBaseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
-    this.isProduction = process.env.NODE_ENV === 'production';
+    // Use centralized API configuration
+    this.apiBaseUrl = API_CONFIG.BASE_URL;
+    this.isProduction = API_CONFIG.IS_PRODUCTION;
   }
 
   /**

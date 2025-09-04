@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import io from 'socket.io-client';
+import { API_CONFIG, logApiConfig } from '../config/api';
 
 interface SocketContextType {
   socket: any | null;
@@ -31,11 +32,11 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
 
   useEffect(() => {
-    // Initialize socket connection
-    const newSocket = io('http://localhost:3001', {
-      transports: ['websocket', 'polling'],
-      timeout: 5000,
-    });
+    // Log configuration for debugging
+    logApiConfig();
+    
+    // Initialize socket connection using centralized config
+    const newSocket = io(API_CONFIG.BASE_URL, API_CONFIG.SOCKET_CONFIG);
 
     setSocket(newSocket);
     setConnectionStatus('connecting');
