@@ -13,7 +13,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -28,7 +28,7 @@ app.use(helmet({
 
 // CORS configuration
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -56,7 +56,7 @@ app.get('/', (req, res) => {
         stats: 'GET /api/notifications/stats'
       }
     },
-    frontend_url: 'http://localhost:3000'
+    frontend_url: process.env.FRONTEND_URL || 'http://localhost:3000'
   };
 
   if (req.accepts('html')) {
@@ -652,7 +652,7 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log(`🚀 HOA Connect Backend Demo running on port ${PORT}`);
   console.log(`📧 Notification endpoints ready`);
-  console.log(`🔗 Frontend URL: http://localhost:3000`);
+  console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
   console.log(`💚 Health check: http://localhost:${PORT}/health`);
   console.log(`🔌 Socket.IO ready for connections`);
 });
