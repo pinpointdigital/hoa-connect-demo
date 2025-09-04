@@ -211,11 +211,10 @@ class QueueService {
         throw new Error('QueueService not initialized');
       }
 
-      const jobOptions = {
+      const jobOptions = Object.assign({
         priority: this.getJobPriority(notification),
-        delay: options.delay || 0,
-        ...options
-      };
+        delay: options.delay || 0
+      }, options);
 
       const job = await this.queues.notifications.add('send-notification', {
         notification
